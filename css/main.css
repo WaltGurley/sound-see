@@ -12,8 +12,20 @@ svg {
   height: 20vh;
 }
 
-.waveform{
-  stroke: #000;
+.waveform {
   stroke-width: 3;
   fill: none;
+}
+
+.freq-spec {
+  stroke-width: 2;
+  fill: none;
+}
+
+.mic {
+  stroke: #000;
+}
+
+.osc {
+  stroke: #a424f4;
 }
