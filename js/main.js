@@ -1,20 +1,26 @@
 //AUDIO SETUP
+//setup and store audio context if Web Audio API available
+try {
+  var windowAudioContext = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = new windowAudioContext();
+} catch (e) {
+  alert("Web Audio API not supported");
+}
 
-//setup and store audio context
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
+//setup oscillator
 var oscillator = audioCtx.createOscillator();
 var gainNodeOsc = audioCtx.createGain();
 var audioDataOsc = audioCtx.createAnalyser();
-
-var gainNodeMic = audioCtx.createGain();
-var audioDataMic = audioCtx.createAnalyser();
 
 oscillator.connect(gainNodeOsc);
 gainNodeOsc.connect(audioCtx.destination);
 gainNodeOsc.gain.value = 0;
 gainNodeOsc.connect(audioDataOsc);
-oscillator.start(0);
+var firstInteraction = true;
+
+//setup microphone
+var gainNodeMic = audioCtx.createGain();
+var audioDataMic = audioCtx.createAnalyser();
 
 //get user media (i.e., microphone)
 navigator.mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
@@ -26,9 +32,9 @@ navigator.mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia |
    }
 } : null);
 
-//check if user media is available and start stream if so
+//check if user media is available and start mic stream if so
 if (!navigator.mediaDevices) {
-  alert("getUserMedia() not supported.");
+  alert("getUserMedia() not supported.\nCannot use microphone");
 } else {
   var mic = navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -42,7 +48,7 @@ if (!navigator.mediaDevices) {
   },
 
   function(err) {
-     alert('The following error occured: ' + err);
+     alert('The following error occured: ' + err.name);
   });
 }
 
@@ -51,6 +57,7 @@ setupVis();
 
 //OSCILLATOR CONTROL SETUP
 function setupOscillatorControls() {
+
   //list of oscillator types
   var oscTypes = ["sine", "sawtooth", "square", "triangle"];
 
@@ -60,7 +67,7 @@ function setupOscillatorControls() {
     .enter()
     .append("button")
     .attr({
-      "class": "col-md-3 btn btn-default",
+      "class": "col-xs-3 btn btn-default",
       "type": "button"
     })
     .text(function(d) { return d; });
@@ -69,17 +76,39 @@ function setupOscillatorControls() {
   oscChoose.on("click", function(d) {
     var pressedBtn = d3.select(this);
 
+    //start oscillator on first click of button (needed for iOS)
+    if (firstInteraction) {
+      oscillator.start(0);
+      firstInteraction = false;
+    }
+
     if (pressedBtn.classed("active")) {
       oscChoose.classed("active", false);
       gainNodeOsc.gain.value = 0;
     } else {
       oscChoose.classed("active", false);
       pressedBtn.classed("active", true);
+
       gainNodeOsc.gain.value = 0.05;
     }
 
     oscillator.type = d;
   });
+
+  var volumeSliderOsc = d3.select(".controls").append("input")
+    .attr({
+      "class": "osc-volume-slider",
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "value": gainNodeOsc.gain.value
+    });
+
+  volumeSliderOsc.on("input", function() {
+    console.log(volumeSliderOsc.property("value"))
+    gainNodeOsc.gain.value = parseFloat(volumeSliderOsc.property("value"));
+  })
 }
 
 //VISUALIZATIONS
@@ -105,8 +134,13 @@ function setupVis() {
     visWidth = parseInt(visContainer.style("width")),
     visHeight = parseInt(visContainer.style("height"));
 
-  //control frequency when mouse is moved in vis-container
-  visContainer.on("mousemove", function () {
+  //control frequency when mouse or touch is moved in vis-container
+  visContainer.on("touchmove", function(e) {
+    oscillator.frequency.value = d3.mouse(visContainer.node())[0] + 200;
+    e.preventDefault();
+  });
+
+  visContainer.on("mousemove", function() {
     oscillator.frequency.value = d3.mouse(visContainer.node())[0] + 200;
   });
 
