@@ -8,10 +8,6 @@ svg {
   background-color: #999;
 }
 
-.controls {
-  height: 20vh;
-}
-
 .waveform {
   stroke-width: 3;
   fill: none;
@@ -23,9 +19,32 @@ svg {
 }
 
 .mic {
-  stroke: #000;
+  stroke: #ff0000;
+  opacity: 0.5;
 }
 
 .osc {
-  stroke: #fa5fc5;
+  stroke: #0000ff;
+  opacity: 0.5;
+}
+
+.controls {
+  /*padding-top: 15px;*/
+}
+
+.osc-controls {
+  height: calc(20vh - 15px);
+}
+
+.slider {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.mic-controls {
+  visibility: hidden;
+}
+
+.mic-slider p{
+  display: inline;
 }
