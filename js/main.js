@@ -63,7 +63,7 @@ setupVis();
 function setupOscillatorControls() {
 
   //initial oscillator output parameters
-  var volumeOsc = 0.1,
+  var volumeOsc = 0,
     mutedOsc = false,
     freqOsc = 440;
 
